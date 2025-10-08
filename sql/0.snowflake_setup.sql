@@ -43,9 +43,9 @@ USE DATABASE QUICKSTART_PGCDC_DB;
 
 -- Create schema for network rules
 CREATE SCHEMA IF NOT EXISTS QUICKSTART_PGCDC_DB.NETWORKS;
-
--- Create schema for healthcare data
-CREATE SCHEMA IF NOT EXISTS QUICKSTART_PGCDC_DB.HEALTHCARE;
+-- Note: Do NOT create the healthcare data schema here. Openflow will
+-- automatically create the source schema (e.g., "healthcare") during the
+-- initial snapshot load in Snowflake.
 
 -- Step 3: Create Network Rules
 -- ----------------------------------------------------------------------------
