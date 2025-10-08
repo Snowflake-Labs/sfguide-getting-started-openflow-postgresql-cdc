@@ -9,7 +9,7 @@
 --
 -- This script initializes the PostgreSQL database with:
 -- 1. Healthcare schema and tables
--- 2. Synthetic snapshot data (100 patients, 10 doctors, 150 appointments, 120 visits)
+-- 2. Synthetic snapshot data (100 patients, 10 doctors, 150 appointments, 100 visits)
 -- 3. CDC configuration (publication for logical replication)
 --
 -- Run this script on your PostgreSQL instance
@@ -289,7 +289,7 @@ INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_t
 (59, 1, CURRENT_DATE + 30, '08:00:00', 'scheduled', 'Pre-operative consultation', 'routine', CURRENT_TIMESTAMP - INTERVAL '6 days', CURRENT_TIMESTAMP - INTERVAL '6 days'),
 (71, 2, CURRENT_DATE + 30, '16:00:00', 'scheduled', 'Medication review', 'follow_up', CURRENT_TIMESTAMP - INTERVAL '3 days', CURRENT_TIMESTAMP - INTERVAL '3 days');
 
--- Insert 120 Visit Records (for completed appointments)
+-- Insert 100 Visit Records (for completed appointments)
 -- Generate visits for completed appointments with realistic data
 INSERT INTO visits (appointment_id, patient_id, doctor_id, visit_date, visit_start_time, visit_end_time, diagnosis, treatment_notes, follow_up_required, prescription_given, total_charge)
 SELECT 
@@ -339,7 +339,7 @@ SELECT
     (75 + RANDOM() * 275)::NUMERIC(10,2) as total_charge
 FROM appointments a
 WHERE a.status = 'completed'
-LIMIT 120;
+LIMIT 100;
 
 -- Step 5: Create CDC Publication
 -- ----------------------------------------------------------------------------

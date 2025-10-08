@@ -32,7 +32,7 @@ ORDER BY table_name;
 -- APPOINTMENTS: 170 (150 past + 20 upcoming)
 -- DOCTORS: 10
 -- PATIENTS: 100
--- VISITS: 120
+-- VISITS: 100 (additional visits will be added during Live CDC)
 
 -- Step 2: Verify CDC Metadata Columns
 -- ----------------------------------------------------------------------------
