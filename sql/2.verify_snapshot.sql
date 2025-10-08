@@ -130,10 +130,11 @@ GROUP BY "status"
 ORDER BY count DESC;
 
 -- Expected distribution:
--- completed: ~105 (70%)
--- cancelled: ~22 (15%)
--- scheduled/confirmed: ~20-25 (12%)
--- no_show: ~15 (10%)
+-- completed: 100 (58.82%)
+-- cancelled: 40 (23.53%)
+-- scheduled: 15 (8.82%)
+-- no_show: 10 (5.88%)
+-- confirmed: 5 (2.94%)
 
 -- Step 6: Doctor Workload Analysis
 -- ----------------------------------------------------------------------------
