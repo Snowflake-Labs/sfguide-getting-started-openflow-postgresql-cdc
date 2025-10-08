@@ -15,7 +15,11 @@
 -- - Updates appointment statuses (UPDATE)
 -- - Creates visit records (INSERT)
 -- - Simulates cancellations and no-shows (UPDATE)
+-- - Deletes old appointments (DELETE - soft delete in Snowflake)
 -- - Updates doctor availability (UPDATE)
+-- 
+-- Timing: Script runs for ~5 minutes with pauses to align with Openflow's 
+-- 1-minute CDC sync interval, allowing you to observe changes in real-time.
 -- 
 -- After running, check Snowflake to see these changes appear in real-time!
 -- ============================================================================
@@ -39,9 +43,10 @@ INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_t
 
 \echo '✅ 3 new appointments scheduled'
 \echo ''
+\echo '⏳ Waiting 60 seconds for CDC sync...'
 
--- Wait a moment to simulate time passing
-SELECT pg_sleep(2);
+-- Wait for CDC sync cycle (Openflow syncs every 1 minute)
+SELECT pg_sleep(60);
 
 -- 8:15 AM - Front desk confirms scheduled appointments for today
 -- ----------------------------------------------------------------------------
@@ -57,7 +62,8 @@ WHERE appointment_date = CURRENT_DATE
 \echo '✅ Today''s appointments confirmed'
 \echo ''
 
-SELECT pg_sleep(2);
+-- Short pause before next operation
+SELECT pg_sleep(5);
 
 -- 8:30 AM - First patients arrive and check in
 -- ----------------------------------------------------------------------------
@@ -80,7 +86,8 @@ WHERE appointment_date = CURRENT_DATE
 \echo '✅ 4 patients checked in'
 \echo ''
 
-SELECT pg_sleep(2);
+-- Short pause before doctors start seeing patients
+SELECT pg_sleep(5);
 
 -- 9:00 AM - Doctors start seeing patients
 -- ----------------------------------------------------------------------------
@@ -101,8 +108,10 @@ WHERE status = 'checked_in'
 
 \echo '✅ 2 visits now in progress'
 \echo ''
+\echo '⏳ Waiting 60 seconds for CDC sync...'
 
-SELECT pg_sleep(3);
+-- Wait for CDC sync to capture in-progress status
+SELECT pg_sleep(60);
 
 -- 9:30 AM - First visits complete, records created
 -- ----------------------------------------------------------------------------
@@ -141,8 +150,10 @@ FROM completed_appts ca;
 
 \echo '✅ 2 visits completed with records created'
 \echo ''
+\echo '⏳ Waiting 60 seconds for CDC sync...'
 
-SELECT pg_sleep(2);
+-- Wait for CDC sync to capture completed visits
+SELECT pg_sleep(60);
 
 -- 10:00 AM - More patients book walk-in urgent appointments
 -- ----------------------------------------------------------------------------
@@ -156,7 +167,8 @@ INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_t
 \echo '✅ 2 urgent walk-in appointments added'
 \echo ''
 
-SELECT pg_sleep(2);
+-- Short pause before cancellation
+SELECT pg_sleep(5);
 
 -- 10:30 AM - Patient cancels afternoon appointment
 -- ----------------------------------------------------------------------------
@@ -174,7 +186,8 @@ LIMIT 1;
 \echo '✅ 1 appointment cancelled'
 \echo ''
 
-SELECT pg_sleep(2);
+-- Short pause before continuing
+SELECT pg_sleep(5);
 
 -- 11:00 AM - Continue processing remaining appointments
 -- ----------------------------------------------------------------------------
@@ -193,7 +206,8 @@ LIMIT 2;
 \echo '✅ 2 more patients checked in'
 \echo ''
 
-SELECT pg_sleep(2);
+-- Short pause before starting visits
+SELECT pg_sleep(5);
 
 -- Start new visits
 UPDATE appointments 
@@ -205,8 +219,10 @@ LIMIT 2;
 
 \echo '✅ 2 new visits in progress'
 \echo ''
+\echo '⏳ Waiting 60 seconds for CDC sync...'
 
-SELECT pg_sleep(3);
+-- Wait for CDC sync
+SELECT pg_sleep(60);
 
 -- 11:30 AM - Complete more visits
 -- ----------------------------------------------------------------------------
@@ -243,7 +259,8 @@ FROM completed_appts ca;
 \echo '✅ Additional visits completed'
 \echo ''
 
-SELECT pg_sleep(2);
+-- Short pause before next operations
+SELECT pg_sleep(5);
 
 -- 12:00 PM - New appointments for next week
 -- ----------------------------------------------------------------------------
@@ -259,6 +276,9 @@ INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_t
 
 \echo '✅ 5 new appointments scheduled for next two weeks'
 \echo ''
+
+-- Short pause before marking no-show
+SELECT pg_sleep(5);
 
 -- 12:15 PM - One patient marked as no-show
 -- ----------------------------------------------------------------------------
@@ -276,15 +296,41 @@ LIMIT 1;
 \echo '✅ 1 patient marked as no-show'
 \echo ''
 
--- 12:30 PM - Update doctor availability
+-- Short pause before cleanup
+SELECT pg_sleep(5);
+
+-- 12:30 PM - Cleanup: Remove old cancelled appointments
 -- ----------------------------------------------------------------------------
 
-\echo '🕐 12:30 PM - Updating doctor schedules...'
+\echo '🕐 12:30 PM - Cleaning up old cancelled appointments...'
+
+-- Delete cancelled appointments from more than 60 days ago (data retention policy)
+DELETE FROM appointments
+WHERE status = 'cancelled'
+  AND appointment_date < CURRENT_DATE - INTERVAL '60 days'
+  AND appointment_id IN (
+    SELECT appointment_id 
+    FROM appointments 
+    WHERE status = 'cancelled' 
+      AND appointment_date < CURRENT_DATE - INTERVAL '60 days'
+    LIMIT 2
+  );
+
+\echo '✅ 2 old cancelled appointments removed'
+\echo ''
+\echo '⏳ Waiting 60 seconds for CDC sync to capture deletes...'
+
+-- Wait for CDC sync to capture DELETE operations
+SELECT pg_sleep(60);
+
+-- 12:45 PM - Update doctor availability
+-- ----------------------------------------------------------------------------
+
+\echo '🕐 12:45 PM - Updating doctor schedules...'
 
 -- Dr. Anderson temporarily not accepting new patients (on vacation next week)
 UPDATE doctors
-SET accepting_new_patients = FALSE,
-    updated_at = CURRENT_TIMESTAMP
+SET accepting_new_patients = FALSE
 WHERE doctor_id = 9;
 
 \echo '✅ Doctor availability updated'
@@ -345,10 +391,10 @@ ORDER BY count DESC;
 \echo 'Next Steps:'
 \echo '1. Go to your Snowflake account'
 \echo '2. Query the APPOINTMENTS and VISITS tables'
-\echo '3. Look for _CHANGE_TYPE column values:'
-\echo '   - INSERT: New records added'
-\echo '   - UPDATE: Existing records modified'
-\echo '4. Check _COMMIT_TIMESTAMP to see when changes occurred'
+\echo '3. Check CDC metadata columns:'
+\echo '   - _SNOWFLAKE_UPDATED_AT: When records were modified'
+\echo '   - _SNOWFLAKE_DELETED: TRUE for deleted records'
+\echo '4. Query the journal tables to see all CDC events'
 \echo '5. Run 4.analytics_queries.sql to analyze the updated data'
 \echo '═══════════════════════════════════════════════════════════'
 \echo ''
