@@ -13,19 +13,19 @@
 
 USE ROLE QUICKSTART_ROLE;
 USE DATABASE QUICKSTART_PGCDC_DB;
-USE SCHEMA HEALTHCARE;
+USE SCHEMA "healthcare";
 USE WAREHOUSE QUICKSTART_PGCDC_WH;
 
 -- Step 1: Check Record Counts
 -- ----------------------------------------------------------------------------
 
-SELECT 'PATIENTS' as table_name, COUNT(*) as record_count FROM PATIENTS
+SELECT 'patients' as table_name, COUNT(*) as record_count FROM "patients"
 UNION ALL
-SELECT 'DOCTORS', COUNT(*) FROM DOCTORS
+SELECT 'doctors', COUNT(*) FROM "doctors"
 UNION ALL
-SELECT 'APPOINTMENTS', COUNT(*) FROM APPOINTMENTS
+SELECT 'appointments', COUNT(*) FROM "appointments"
 UNION ALL
-SELECT 'VISITS', COUNT(*) FROM VISITS
+SELECT 'visits', COUNT(*) FROM "visits"
 ORDER BY table_name;
 
 -- Expected Results:
@@ -43,7 +43,7 @@ SELECT
     COUNT(*) as count,
     MIN(_COMMIT_TIMESTAMP) as earliest_change,
     MAX(_COMMIT_TIMESTAMP) as latest_change
-FROM APPOINTMENTS
+FROM "appointments"
 GROUP BY _CHANGE_TYPE
 ORDER BY _CHANGE_TYPE;
 
@@ -53,10 +53,10 @@ ORDER BY _CHANGE_TYPE;
 -- ----------------------------------------------------------------------------
 
 -- View sample patients
-SELECT * FROM PATIENTS LIMIT 10;
+SELECT * FROM "patients" LIMIT 10;
 
 -- View sample doctors
-SELECT * FROM DOCTORS ORDER BY SPECIALIZATION, LAST_NAME;
+SELECT * FROM "doctors" ORDER BY specialization, last_name;
 
 -- View sample appointments
 SELECT 
@@ -69,7 +69,7 @@ SELECT
     REASON_FOR_VISIT,
     APPOINTMENT_TYPE
 FROM APPOINTMENTS 
-WHERE STATUS = 'scheduled'
+WHERE status = 'scheduled'
 LIMIT 10;
 
 -- View sample visits
@@ -80,7 +80,7 @@ SELECT
     VISIT_DATE,
     DIAGNOSIS,
     TOTAL_CHARGE
-FROM VISITS 
+FROM "visits" 
 LIMIT 10;
 
 -- Step 4: Data Quality Checks
@@ -91,7 +91,7 @@ SELECT
     'Patients with NULL names' as check_name,
     COUNT(*) as issue_count
 FROM PATIENTS 
-WHERE FIRST_NAME IS NULL OR LAST_NAME IS NULL
+WHERE first_name IS NULL OR last_name IS NULL
 
 UNION ALL
 
@@ -99,7 +99,7 @@ SELECT
     'Doctors with NULL names',
     COUNT(*)
 FROM DOCTORS 
-WHERE FIRST_NAME IS NULL OR LAST_NAME IS NULL
+WHERE first_name IS NULL OR last_name IS NULL
 
 UNION ALL
 
@@ -107,7 +107,7 @@ SELECT
     'Appointments with NULL dates',
     COUNT(*)
 FROM APPOINTMENTS 
-WHERE APPOINTMENT_DATE IS NULL OR APPOINTMENT_TIME IS NULL
+WHERE appointment_date IS NULL OR appointment_time IS NULL
 
 UNION ALL
 
@@ -115,7 +115,7 @@ SELECT
     'Visits with NULL charges',
     COUNT(*)
 FROM VISITS 
-WHERE TOTAL_CHARGE IS NULL;
+WHERE total_charge IS NULL;
 
 -- All counts should be 0
 
@@ -126,7 +126,7 @@ SELECT
     STATUS,
     COUNT(*) as count,
     ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) as percentage
-FROM APPOINTMENTS
+FROM "appointments"
 GROUP BY STATUS
 ORDER BY count DESC;
 
@@ -146,8 +146,8 @@ SELECT
     COUNT(a.APPOINTMENT_ID) as total_appointments,
     SUM(CASE WHEN a.STATUS = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
     SUM(CASE WHEN a.STATUS IN ('scheduled', 'confirmed') THEN 1 ELSE 0 END) as upcoming_appointments
-FROM DOCTORS d
-LEFT JOIN APPOINTMENTS a ON d.DOCTOR_ID = a.DOCTOR_ID
+FROM "doctors" d
+LEFT JOIN "appointments" a ON d.doctor_id = a.doctor_id
 GROUP BY d.DOCTOR_ID, d.FIRST_NAME, d.LAST_NAME, d.SPECIALIZATION, d.DEPARTMENT
 ORDER BY total_appointments DESC;
 
@@ -159,6 +159,7 @@ SELECT
     INSURANCE_PROVIDER,
     COUNT(*) as patient_count
 FROM PATIENTS
+-- Use quoted lowercase for schema/table/column names in Snowflake
 GROUP BY INSURANCE_PROVIDER
 ORDER BY patient_count DESC;
 
@@ -166,7 +167,7 @@ ORDER BY patient_count DESC;
 SELECT 
     STATE,
     COUNT(*) as patient_count
-FROM PATIENTS
+FROM "patients"
 GROUP BY STATE
 ORDER BY patient_count DESC
 LIMIT 10;
@@ -181,7 +182,7 @@ SELECT
         ELSE 'Senior (65+)'
     END as age_group,
     COUNT(*) as patient_count
-FROM PATIENTS
+FROM "patients"
 GROUP BY age_group
 ORDER BY age_group;
 
@@ -198,12 +199,12 @@ SELECT
     a.STATUS,
     a.REASON_FOR_VISIT,
     a.APPOINTMENT_TYPE
-FROM APPOINTMENTS a
-JOIN PATIENTS p ON a.PATIENT_ID = p.PATIENT_ID
-JOIN DOCTORS d ON a.DOCTOR_ID = d.DOCTOR_ID
-WHERE a.APPOINTMENT_DATE >= CURRENT_DATE
-  AND a.STATUS IN ('scheduled', 'confirmed')
-ORDER BY a.APPOINTMENT_DATE, a.APPOINTMENT_TIME;
+FROM "appointments" a
+JOIN "patients" p ON a.patient_id = p.patient_id
+JOIN "doctors" d ON a.doctor_id = d.doctor_id
+WHERE a.appointment_date >= CURRENT_DATE
+  AND a.status IN ('scheduled', 'confirmed')
+ORDER BY a.appointment_date, a.appointment_time;
 
 -- Step 9: Visit Revenue Summary
 -- ----------------------------------------------------------------------------
@@ -214,7 +215,7 @@ SELECT
     AVG(TOTAL_CHARGE) as average_charge,
     MIN(TOTAL_CHARGE) as min_charge,
     MAX(TOTAL_CHARGE) as max_charge
-FROM VISITS;
+FROM "visits";
 
 -- Revenue by doctor
 SELECT 
@@ -223,8 +224,8 @@ SELECT
     COUNT(v.VISIT_ID) as visit_count,
     SUM(v.TOTAL_CHARGE) as total_revenue,
     ROUND(AVG(v.TOTAL_CHARGE), 2) as avg_revenue_per_visit
-FROM DOCTORS d
-JOIN VISITS v ON d.DOCTOR_ID = v.DOCTOR_ID
+FROM "doctors" d
+JOIN "visits" v ON d.doctor_id = v.doctor_id
 GROUP BY d.DOCTOR_ID, d.FIRST_NAME, d.LAST_NAME, d.SPECIALIZATION
 ORDER BY total_revenue DESC;
 
@@ -234,7 +235,7 @@ ORDER BY total_revenue DESC;
 SELECT 
     DIAGNOSIS,
     COUNT(*) as frequency
-FROM VISITS
+FROM "visits"
 GROUP BY DIAGNOSIS
 ORDER BY frequency DESC
 LIMIT 10;
@@ -248,7 +249,7 @@ SELECT
     COUNT(*) as total_visits,
     ROUND(SUM(CASE WHEN FOLLOW_UP_REQUIRED THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as followup_percentage,
     ROUND(SUM(CASE WHEN PRESCRIPTION_GIVEN THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as prescription_percentage
-FROM VISITS;
+FROM "visits";
 
 -- ============================================================================
 -- Snapshot Verification Complete!
