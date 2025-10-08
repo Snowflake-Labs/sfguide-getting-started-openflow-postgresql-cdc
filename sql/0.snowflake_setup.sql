@@ -30,6 +30,7 @@ CREATE WAREHOUSE IF NOT EXISTS QUICKSTART_PGCDC_WH
 
 -- Grant privileges to runtime role
 GRANT OWNERSHIP ON DATABASE QUICKSTART_PGCDC_DB TO ROLE QUICKSTART_ROLE;
+GRANT OWNERSHIP ON SCHEMA QUICKSTART_PGCDC_DB.PUBLIC TO ROLE QUICKSTART_ROLE;
 GRANT USAGE ON WAREHOUSE QUICKSTART_PGCDC_WH TO ROLE QUICKSTART_ROLE;
 
 -- Grant runtime role to OpenFlow admin
@@ -46,6 +47,15 @@ CREATE SCHEMA IF NOT EXISTS QUICKSTART_PGCDC_DB.NETWORKS;
 -- Note: Do NOT create the healthcare data schema here. Openflow will
 -- automatically create the source schema (e.g., "healthcare") during the
 -- initial snapshot load in Snowflake.
+
+-- Create stage for Snowflake Intelligence semantic models
+USE SCHEMA PUBLIC;
+CREATE STAGE IF NOT EXISTS semantic_models
+  DIRECTORY = (ENABLE = TRUE)
+  COMMENT = 'Stage for Snowflake Intelligence semantic models';
+
+-- Grant usage to ACCOUNTADMIN for Snowflake Intelligence agent creation
+GRANT READ ON STAGE semantic_models TO ROLE ACCOUNTADMIN;
 
 -- Step 3: Create Network Rules
 -- ----------------------------------------------------------------------------
