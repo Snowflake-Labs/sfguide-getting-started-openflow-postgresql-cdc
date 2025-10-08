@@ -1,0 +1,649 @@
+name: HEALTHCARE_DATA_INTELLIGENCE
+tables:
+  - name: appointments
+    synonyms:
+      - appointments
+      - bookings
+      - consultations
+      - doctor_appointments
+      - meetings
+      - patient_visits
+      - reservations
+      - scheduled_visits
+      - sessions
+    description:
+      This table stores information about scheduled appointments between patients and doctors, including the date and
+      time of the appointment, the reason for the visit, and the current status of the appointment.
+    base_table:
+      database: QUICKSTART_PGCDC_DB
+      schema: '"healthcare"'
+      table: '"appointments"'
+    dimensions:
+      - name: _SNOWFLAKE_DELETED
+        synonyms:
+          - deleted_flag
+          - deleted_status
+          - is_deleted
+          - removed_from_snowflake
+          - snowflake_deletion_indicator
+        description: Indicates whether the appointment has been deleted in the source system.
+        expr: _SNOWFLAKE_DELETED
+        data_type: BOOLEAN
+        sample_values:
+          - "FALSE"
+      - name: appointment_id
+        synonyms:
+          - appointment_number
+          - appt_id
+          - booking_id
+          - meeting_id
+          - schedule_id
+          - visit_id
+        description: Unique identifier for each appointment.
+        expr: '"appointment_id"'
+        data_type: NUMBER(38,0)
+      - name: appointment_type
+        synonyms:
+          - appointment_category
+          - consultation_type
+          - meeting_type
+          - session_type
+          - visit_category
+          - visit_type
+        description:
+          The type of appointment or service scheduled, such as "New Patient Consultation", "Follow-up Visit",
+          "Surgery", etc.
+        expr: '"appointment_type"'
+        data_type: VARCHAR(16777216)
+      - name: doctor_id
+        synonyms:
+          - attending_doctor_id
+          - healthcare_provider_id
+          - medical_professional_id
+          - physician_id
+          - physician_identifier
+          - practitioner_id
+          - treating_doctor_id
+        description: The unique identifier of the doctor assigned to the appointment.
+        expr: '"doctor_id"'
+        data_type: NUMBER(38,0)
+      - name: patient_id
+        synonyms:
+          - individual_id
+          - medical_record_number
+          - patient_code
+          - patient_identifier
+          - patient_number
+          - person_id
+        description: Unique identifier for the patient associated with the appointment.
+        expr: '"patient_id"'
+        data_type: NUMBER(38,0)
+      - name: reason_for_visit
+        synonyms:
+          - appointment_purpose
+          - chief_complaint
+          - diagnosis_code
+          - health_issue
+          - medical_reason
+          - patient_concern
+          - visit_description
+          - visit_purpose
+          - visit_reason
+        description: The reason or purpose for which the patient visited the healthcare provider.
+        expr: '"reason_for_visit"'
+        data_type: VARCHAR(16777216)
+      - name: status
+        synonyms:
+          - category
+          - circumstance
+          - classification
+          - condition
+          - position
+          - situation
+          - standing
+          - state
+        description:
+          The current status of the appointment, such as "Scheduled", "Confirmed", "Cancelled", "Rescheduled",
+          "Completed", etc.
+        expr: '"status"'
+        data_type: VARCHAR(16777216)
+    time_dimensions:
+      - name: _SNOWFLAKE_INSERTED_AT
+        synonyms:
+          - creation_date
+          - creation_timestamp
+          - inserted_at_timestamp
+          - insertion_timestamp
+          - record_creation_date
+          - record_inserted_at
+          - row_inserted_at
+          - timestamp_created
+        description: Timestamp when the appointment record was inserted into the database.
+        expr: _SNOWFLAKE_INSERTED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:26.683+0000
+          - 2025-10-08T07:29:26.684+0000
+          - 2025-10-08T07:29:26.682+0000
+      - name: _SNOWFLAKE_UPDATED_AT
+        synonyms:
+          - last_changed
+          - last_modified
+          - last_updated
+          - modification_date
+          - updated_timestamp
+        description:
+          The date and time when the appointment record was last updated in the system, in Coordinated Universal Time
+          (UTC) format.
+        expr: _SNOWFLAKE_UPDATED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:26.681+0000
+          - 2025-10-08T07:29:26.683+0000
+          - 2025-10-08T07:29:26.682+0000
+      - name: appointment_date
+        synonyms:
+          - appointment_day
+          - appointment_day
+          - booking_date
+          - date_of_appointment
+          - scheduled_appointment_date
+          - scheduled_date
+          - visit_date
+        description: The date on which the appointment is scheduled to take place.
+        expr: '"appointment_date"'
+        data_type: DATE
+      - name: appointment_time
+        synonyms:
+          - appointment_hour
+          - appointment_schedule
+          - appointment_slot
+          - consultation_time
+          - meeting_time
+          - scheduled_time
+          - time_of_visit
+          - visit_time
+        description: The scheduled time of the appointment, recorded to the second.
+        expr: '"appointment_time"'
+        data_type: TIME(9)
+      - name: created_at
+        synonyms:
+          - created_on
+          - creation_date
+          - creation_time
+          - date_created
+          - entry_date
+          - initialization_time
+          - inserted_at
+          - record_created
+          - timestamp_created
+        description: The date and time when the appointment was created.
+        expr: '"created_at"'
+        data_type: TIMESTAMP_NTZ(9)
+      - name: updated_at
+        synonyms:
+          - date_updated
+          - last_modified
+          - last_updated
+          - modified_at
+          - modified_date
+          - revision_date
+        description: The date and time when the appointment was last updated.
+        expr: '"updated_at"'
+        data_type: TIMESTAMP_NTZ(9)
+    facts: []
+    primary_key:
+      columns:
+        - APPOINTMENT_ID
+  - name: doctors
+    synonyms:
+      - caregivers
+      - healers
+      - healthcare providers
+      - medical doctors
+      - medical practitioners
+      - medical specialists
+      - medics
+      - physicians
+    description:
+      This table stores information about doctors, including their personal details, professional credentials, and
+      contact information, as well as their work status and experience, to facilitate management and tracking of medical
+      staff within a healthcare organization.
+    base_table:
+      database: QUICKSTART_PGCDC_DB
+      schema: '"healthcare"'
+      table: '"doctors"'
+    dimensions:
+      - name: _SNOWFLAKE_DELETED
+        synonyms:
+          - archived
+          - deleted_flag
+          - deleted_status
+          - is_deleted
+          - logically_deleted
+          - purged
+          - removed
+          - soft_delete
+        description: Indicates whether a doctor's record has been deleted in the source system.
+        expr: _SNOWFLAKE_DELETED
+        data_type: BOOLEAN
+        sample_values:
+          - "FALSE"
+      - name: accepting_new_patients
+        synonyms:
+          - accepting_new_clients
+          - new_patient_status
+          - open_for_new_appointments
+          - open_to_new_patients
+          - taking_new_patients
+        description: Indicates whether the doctor is currently accepting new patients into their practice.
+        expr: '"accepting_new_patients"'
+        data_type: BOOLEAN
+      - name: department
+        synonyms:
+          - branch
+          - division
+          - group
+          - office
+          - section
+          - team
+          - unit
+          - ward
+        description: The department or specialty in which the doctor practices.
+        expr: '"department"'
+        data_type: VARCHAR(16777216)
+      - name: doctor_id
+        synonyms:
+          - doc_id
+          - doctor_unique_id
+          - healthcare_provider_id
+          - medical_doctor_id
+          - medical_professional_id
+          - physician_id
+          - practitioner_id
+        description: Unique identifier for a doctor in the system.
+        expr: '"doctor_id"'
+        data_type: NUMBER(38,0)
+      - name: email
+        synonyms:
+          - contact_email
+          - doctor_email
+          - electronic_mail
+          - email_address
+          - mail_address
+        description: The email address of the doctor.
+        expr: '"email"'
+        data_type: VARCHAR(16777216)
+      - name: first_name
+        synonyms:
+          - christian_name
+          - forename
+          - given_name
+          - name
+          - personal_name
+        description: The first name of the doctor.
+        expr: '"first_name"'
+        data_type: VARCHAR(16777216)
+      - name: last_name
+        synonyms:
+          - family_name
+          - full_name
+          - last_name
+          - name
+          - person_name
+          - surname
+        description: The last name of the doctor.
+        expr: '"last_name"'
+        data_type: VARCHAR(16777216)
+      - name: phone
+        synonyms:
+          - cell_phone
+          - contact_info
+          - contact_number
+          - landline
+          - mobile_number
+          - phone_number
+          - telephone
+        description: The phone number of the doctor.
+        expr: '"phone"'
+        data_type: VARCHAR(16777216)
+      - name: specialization
+        synonyms:
+          - area_of_practice
+          - area_of_specialty
+          - discipline
+          - field_of_expertise
+          - medical_specialty
+          - profession
+          - professional_specialization
+        description:
+          The medical specialty or area of expertise of the doctor, such as Cardiology, Oncology, or General Practice.
+        expr: '"specialization"'
+        data_type: VARCHAR(16777216)
+    time_dimensions:
+      - name: _SNOWFLAKE_INSERTED_AT
+        synonyms:
+          - created_at
+          - date_created
+          - inserted_timestamp
+          - insertion_date
+          - record_creation_time
+          - timestamp_inserted
+        description: Timestamp when the doctor's record was inserted into the system.
+        expr: _SNOWFLAKE_INSERTED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:25.958+0000
+          - 2025-10-08T07:29:25.961+0000
+          - 2025-10-08T07:29:25.959+0000
+      - name: _SNOWFLAKE_UPDATED_AT
+        synonyms:
+          - last_changed
+          - last_modified
+          - last_updated
+          - modified_date
+          - revision_date
+          - update_timestamp
+          - updated_at
+        description: The date and time when the doctor's record was last updated in the system.
+        expr: _SNOWFLAKE_UPDATED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:25.958+0000
+          - 2025-10-08T07:29:25.961+0000
+          - 2025-10-08T07:29:25.959+0000
+    facts:
+      - name: years_of_experience
+        synonyms:
+          - career_length
+          - experience_level
+          - length_of_service
+          - professional_years
+          - tenure
+          - time_in_profession
+          - work_experience
+          - years_in_practice
+          - years_practicing
+        description: The number of years the doctor has been practicing medicine.
+        expr: '"years_of_experience"'
+        data_type: NUMBER(38,0)
+    primary_key:
+      columns:
+        - DOCTOR_ID
+  - name: patients
+    synonyms:
+      - clients
+      - customers
+      - individuals
+      - medical_records
+      - patient_data
+      - patients_info
+      - people
+      - personal_details
+      - persons
+      - recipients
+    description:
+      This table stores information about patients, including their personal details, contact information, insurance
+      provider, and registration date, as well as system-generated timestamps for when the record was inserted, updated,
+      and potentially deleted.
+    base_table:
+      database: QUICKSTART_PGCDC_DB
+      schema: '"healthcare"'
+      table: '"patients"'
+    dimensions:
+      - name: _SNOWFLAKE_DELETED
+        description: Indicates whether a patient's record has been deleted in the source system.
+        expr: _SNOWFLAKE_DELETED
+        data_type: BOOLEAN
+        sample_values:
+          - "FALSE"
+      - name: address
+        expr: '"address"'
+        data_type: VARCHAR(16777216)
+      - name: city
+        expr: '"city"'
+        data_type: VARCHAR(16777216)
+      - name: email
+        expr: '"email"'
+        data_type: VARCHAR(16777216)
+      - name: first_name
+        expr: '"first_name"'
+        data_type: VARCHAR(16777216)
+      - name: insurance_provider
+        expr: '"insurance_provider"'
+        data_type: VARCHAR(16777216)
+      - name: last_name
+        expr: '"last_name"'
+        data_type: VARCHAR(16777216)
+      - name: patient_id
+        expr: '"patient_id"'
+        data_type: NUMBER(38,0)
+      - name: phone
+        expr: '"phone"'
+        data_type: VARCHAR(16777216)
+      - name: state
+        expr: '"state"'
+        data_type: VARCHAR(16777216)
+    time_dimensions:
+      - name: _SNOWFLAKE_INSERTED_AT
+        description: Timestamp when the patient record was inserted into the database.
+        expr: _SNOWFLAKE_INSERTED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:25.551+0000
+          - 2025-10-08T07:29:25.554+0000
+          - 2025-10-08T07:29:25.550+0000
+      - name: _SNOWFLAKE_UPDATED_AT
+        description:
+          The date and time when the patient's record was last updated in the system, in Coordinated Universal Time
+          (UTC) format.
+        expr: _SNOWFLAKE_UPDATED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:25.551+0000
+          - 2025-10-08T07:29:25.554+0000
+          - 2025-10-08T07:29:25.574+0000
+      - name: date_of_birth
+        expr: '"date_of_birth"'
+        data_type: DATE
+      - name: registration_date
+        expr: '"registration_date"'
+        data_type: TIMESTAMP_NTZ(9)
+    facts: []
+    primary_key:
+      columns:
+        - PATIENT_ID
+  - name: visits
+    synonyms:
+      - appointments
+      - clinic_visits
+      - consultations
+      - doctor_appointments
+      - doctor_visits
+      - hospital_visits
+      - medical_visits
+      - patient_appointments
+      - patient_visits
+    description:
+      This table stores information about patient visits to a healthcare facility, including the visit details,
+      diagnosis, treatment, and billing information. It tracks each visit's appointment and patient information, as well
+      as the doctor who attended to the patient, and includes timestamps for the start and end of the visit. The table
+      also captures the diagnosis and treatment notes, and flags whether a follow-up visit is required and if a
+      prescription was given. Additionally, it stores the total charge for the visit and includes metadata for tracking
+      when the record was inserted, updated, or deleted.
+    base_table:
+      database: QUICKSTART_PGCDC_DB
+      schema: '"healthcare"'
+      table: '"visits"'
+    dimensions:
+      - name: _SNOWFLAKE_DELETED
+        description: Indicates whether a visit has been deleted from the database.
+        expr: _SNOWFLAKE_DELETED
+        data_type: BOOLEAN
+        sample_values:
+          - "FALSE"
+      - name: appointment_id
+        expr: '"appointment_id"'
+        data_type: NUMBER(38,0)
+      - name: diagnosis
+        expr: '"diagnosis"'
+        data_type: VARCHAR(16777216)
+      - name: doctor_id
+        expr: '"doctor_id"'
+        data_type: NUMBER(38,0)
+      - name: follow_up_required
+        expr: '"follow_up_required"'
+        data_type: BOOLEAN
+      - name: patient_id
+        expr: '"patient_id"'
+        data_type: NUMBER(38,0)
+      - name: prescription_given
+        expr: '"prescription_given"'
+        data_type: BOOLEAN
+      - name: treatment_notes
+        expr: '"treatment_notes"'
+        data_type: VARCHAR(16777216)
+      - name: visit_id
+        expr: '"visit_id"'
+        data_type: NUMBER(38,0)
+    time_dimensions:
+      - name: _SNOWFLAKE_INSERTED_AT
+        description: The date and time when the visit record was inserted into the database.
+        expr: _SNOWFLAKE_INSERTED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:26.365+0000
+          - 2025-10-08T07:29:26.366+0000
+          - 2025-10-08T07:29:26.368+0000
+      - name: _SNOWFLAKE_UPDATED_AT
+        description: The date and time when the visit record was last updated in the database, in ISO 8601 format.
+        expr: _SNOWFLAKE_UPDATED_AT
+        data_type: TIMESTAMP_NTZ(9)
+        sample_values:
+          - 2025-10-08T07:29:26.365+0000
+          - 2025-10-08T07:29:26.366+0000
+          - 2025-10-08T07:29:26.368+0000
+      - name: visit_date
+        expr: '"visit_date"'
+        data_type: DATE
+      - name: visit_end_time
+        expr: '"visit_end_time"'
+        data_type: TIMESTAMP_NTZ(9)
+      - name: visit_start_time
+        expr: '"visit_start_time"'
+        data_type: TIMESTAMP_NTZ(9)
+    facts:
+      - name: total_charge
+        synonyms:
+          - total_amount
+          - total_bill
+          - total_cost
+          - total_expense
+          - total_fee
+          - total_payment
+          - total_price
+        description:
+          The total amount charged to the patient or responsible party for a visit, rounded to two decimal places.
+        expr: '"total_charge"'
+        data_type: NUMBER(10,2)
+    primary_key:
+      columns:
+        - VISIT_ID
+relationships:
+  - name: appointments_to_doctors
+    left_table: appointments
+    right_table: doctors
+    relationship_columns:
+      - left_column: DOCTOR_ID
+        right_column: DOCTOR_ID
+  - name: appointments_to_patients
+    left_table: appointments
+    relationship_columns:
+      - left_column: patient_id
+        right_column: PATIENT_ID
+    right_table: patients
+  - name: visits_to_appointments
+    left_table: appointments
+    right_table: visits
+    relationship_columns:
+      - left_column: appointment_id
+        right_column: APPOINTMENT_ID
+  - name: visits_to_patients
+    left_table: patients
+    right_table: visits
+    relationship_columns:
+      - left_column: patient_id
+        right_column: PATIENT_ID
+  - name: visits_to_doctors
+    left_table: visits
+    right_table: doctors
+    relationship_columns:
+      - left_column: doctor_id
+        right_column: DOCTOR_ID
+verified_queries:
+  - name: How many total appointments do we have?
+    question: How many total appointments do we have?
+    sql: |-
+      SELECT
+        COUNT(appointment_id) AS total_appointments,
+        MIN(appointment_date) AS start_date,
+        MAX(appointment_date) AS end_date
+      FROM
+        appointments
+      WHERE
+        _snowflake_deleted = FALSE
+    use_as_onboarding_question: false
+    verified_by: Kamesh Sampath
+    verified_at: 1759936595
+  - name: Show appointments modified today via CDC
+    question: Show appointments modified today via CDC
+    sql: |-
+      SELECT
+        appointment_id,
+        patient_id,
+        doctor_id,
+        appointment_date,
+        appointment_time,
+        status,
+        reason_for_visit,
+        appointment_type,
+        _snowflake_updated_at
+      FROM
+        appointments
+      WHERE
+        _snowflake_deleted = FALSE
+        AND TO_DATE(_snowflake_updated_at) = CURRENT_DATE
+      ORDER BY
+        _snowflake_updated_at DESC NULLS LAST
+    use_as_onboarding_question: true
+    verified_by: Kamesh Sampath
+    verified_at: 1759937288
+  - name: Calculate revenue by doctor
+    question: Calculate revenue by doctor
+    sql: |-
+      SELECT
+        d.doctor_id,
+        d.first_name,
+        d.last_name,
+        d.specialization,
+        d.department,
+        MIN(v.visit_date) AS start_date,
+        MAX(v.visit_date) AS end_date,
+        SUM(v.total_charge) AS total_revenue
+      FROM
+        visits AS v
+        LEFT OUTER JOIN doctors AS d ON v.doctor_id = d.doctor_id
+      WHERE
+        v._snowflake_deleted = FALSE
+        AND d._snowflake_deleted = FALSE
+      GROUP BY
+        d.doctor_id,
+        d.first_name,
+        d.last_name,
+        d.specialization,
+        d.department
+      ORDER BY
+        total_revenue DESC NULLS LAST
+    use_as_onboarding_question: false
+    verified_by: Kamesh Sampath
+    verified_at: 1759937325
