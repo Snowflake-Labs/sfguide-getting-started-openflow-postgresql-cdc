@@ -43,37 +43,37 @@ ORDER BY appointment_count DESC;
 -- Patients Currently in Clinic
 -- ----------------------------------------------------------------------------
 SELECT 
-    "p"."first_name" || ' ' || "p"."last_name" as patient_name,
-    "p"."phone",
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    "a"."appointment_time",
-    "a"."status",
-    "a"."reason_for_visit",
+    p."first_name" || ' ' || p."last_name" as patient_name,
+    p."phone",
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    a."appointment_time",
+    a."status",
+    a."reason_for_visit",
     TIMESTAMPDIFF(MINUTE, 
-        TO_TIMESTAMP(TO_CHAR("a"."appointment_date", 'YYYY-MM-DD') || ' ' || TO_CHAR("a"."appointment_time", 'HH24:MI:SS')),
+        TO_TIMESTAMP(TO_CHAR(a."appointment_date", 'YYYY-MM-DD') || ' ' || TO_CHAR(a."appointment_time", 'HH24:MI:SS')),
         CURRENT_TIMESTAMP()) as minutes_since_appointment
 FROM "appointments" a
-JOIN "patients" p ON "a"."patient_id" = "p"."patient_id"
-JOIN "doctors" d ON "a"."doctor_id" = "d"."doctor_id"
-WHERE "a"."appointment_date" = CURRENT_DATE
-  AND "a"."status" IN ('checked_in', 'in_progress')
-ORDER BY "a"."status" DESC, "a"."appointment_time";
+JOIN "patients" p ON a."patient_id" = p."patient_id"
+JOIN "doctors" d ON a."doctor_id" = d."doctor_id"
+WHERE a."appointment_date" = CURRENT_DATE
+  AND a."status" IN ('checked_in', 'in_progress')
+ORDER BY a."status" DESC, a."appointment_time";
 
 -- Doctor Availability Today
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    "d"."department",
-    "d"."accepting_new_patients",
-    COUNT(CASE WHEN "a"."status" = 'completed' THEN 1 END) as completed_today,
-    COUNT(CASE WHEN "a"."status" = 'in_progress' THEN 1 END) as currently_seeing,
-    COUNT(CASE WHEN "a"."status" IN ('confirmed', 'checked_in') THEN 1 END) as waiting,
-    COUNT("a"."appointment_id") as total_appointments_today
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    d."department",
+    d."accepting_new_patients",
+    COUNT(CASE WHEN a."status" = 'completed' THEN 1 END) as completed_today,
+    COUNT(CASE WHEN a."status" = 'in_progress' THEN 1 END) as currently_seeing,
+    COUNT(CASE WHEN a."status" IN ('confirmed', 'checked_in') THEN 1 END) as waiting,
+    COUNT(a."appointment_id") as total_appointments_today
 FROM "doctors" d
-LEFT JOIN "appointments" a ON "d"."doctor_id" = "a"."doctor_id" AND "a"."appointment_date" = CURRENT_DATE
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization", "d"."department", "d"."accepting_new_patients"
+LEFT JOIN "appointments" a ON d."doctor_id" = a."doctor_id" AND a."appointment_date" = CURRENT_DATE
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization", d."department", d."accepting_new_patients"
 ORDER BY total_appointments_today DESC;
 
 -- ============================================================================
@@ -150,54 +150,54 @@ ORDER BY day_num;
 -- Doctor Productivity (Last 30 Days)
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    COUNT("a"."appointment_id") as total_appointments,
-    SUM(CASE WHEN "a"."status" = 'completed' THEN 1 ELSE 0 END) as completed,
-    SUM(CASE WHEN "a"."status" = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
-    SUM(CASE WHEN "a"."status" = 'no_show' THEN 1 ELSE 0 END) as no_shows,
-    ROUND(SUM(CASE WHEN "a"."status" = 'completed' THEN 1 ELSE 0 END) * 100.0 / 
-          NULLIF(COUNT("a"."appointment_id"), 0), 1) as completion_rate,
-    COUNT(DISTINCT "a"."appointment_date") as days_worked
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    COUNT(a."appointment_id") as total_appointments,
+    SUM(CASE WHEN a."status" = 'completed' THEN 1 ELSE 0 END) as completed,
+    SUM(CASE WHEN a."status" = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+    SUM(CASE WHEN a."status" = 'no_show' THEN 1 ELSE 0 END) as no_shows,
+    ROUND(SUM(CASE WHEN a."status" = 'completed' THEN 1 ELSE 0 END) * 100.0 / 
+          NULLIF(COUNT(a."appointment_id"), 0), 1) as completion_rate,
+    COUNT(DISTINCT a."appointment_date") as days_worked
 FROM "doctors" d
-LEFT JOIN "appointments" a ON "d"."doctor_id" = "a"."doctor_id" 
-    AND "a"."appointment_date" >= DATEADD(day, -30, CURRENT_DATE)
-    AND "a"."appointment_date" <= CURRENT_DATE
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization"
+LEFT JOIN "appointments" a ON d."doctor_id" = a."doctor_id" 
+    AND a."appointment_date" >= DATEADD(day, -30, CURRENT_DATE)
+    AND a."appointment_date" <= CURRENT_DATE
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization"
 ORDER BY completed DESC;
 
 -- Average Appointments per Day by Doctor
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    COUNT("a"."appointment_id") as total_appointments,
-    COUNT(DISTINCT "a"."appointment_date") as days_with_appointments,
-    ROUND(COUNT("a"."appointment_id") * 1.0 / 
-          NULLIF(COUNT(DISTINCT "a"."appointment_date"), 0), 1) as avg_appointments_per_day
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    COUNT(a."appointment_id") as total_appointments,
+    COUNT(DISTINCT a."appointment_date") as days_with_appointments,
+    ROUND(COUNT(a."appointment_id") * 1.0 / 
+          NULLIF(COUNT(DISTINCT a."appointment_date"), 0), 1) as avg_appointments_per_day
 FROM "doctors" d
-LEFT JOIN "appointments" a ON "d"."doctor_id" = "a"."doctor_id" 
-    AND "a"."appointment_date" >= DATEADD(day, -30, CURRENT_DATE)
-    AND "a"."status" = 'completed'
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization"
-HAVING COUNT(DISTINCT "a"."appointment_date") > 0
+LEFT JOIN "appointments" a ON d."doctor_id" = a."doctor_id" 
+    AND a."appointment_date" >= DATEADD(day, -30, CURRENT_DATE)
+    AND a."status" = 'completed'
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization"
+HAVING COUNT(DISTINCT a."appointment_date") > 0
 ORDER BY avg_appointments_per_day DESC;
 
 -- Patient Satisfaction Proxy (Follow-up Required Rate)
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    COUNT("v"."visit_id") as total_visits,
-    SUM(CASE WHEN "v"."follow_up_required" THEN 1 ELSE 0 END) as followups_needed,
-    ROUND(SUM(CASE WHEN "v"."follow_up_required" THEN 1 ELSE 0 END) * 100.0 / 
-          NULLIF(COUNT("v"."visit_id"), 0), 1) as followup_rate,
-    SUM(CASE WHEN "v"."prescription_given" THEN 1 ELSE 0 END) as prescriptions_written,
-    ROUND(SUM(CASE WHEN "v"."prescription_given" THEN 1 ELSE 0 END) * 100.0 / 
-          NULLIF(COUNT("v"."visit_id"), 0), 1) as prescription_rate
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    COUNT(v."visit_id") as total_visits,
+    SUM(CASE WHEN v."follow_up_required" THEN 1 ELSE 0 END) as followups_needed,
+    ROUND(SUM(CASE WHEN v."follow_up_required" THEN 1 ELSE 0 END) * 100.0 / 
+          NULLIF(COUNT(v."visit_id"), 0), 1) as followup_rate,
+    SUM(CASE WHEN v."prescription_given" THEN 1 ELSE 0 END) as prescriptions_written,
+    ROUND(SUM(CASE WHEN v."prescription_given" THEN 1 ELSE 0 END) * 100.0 / 
+          NULLIF(COUNT(v."visit_id"), 0), 1) as prescription_rate
 FROM "doctors" d
-JOIN "visits" v ON "d"."doctor_id" = "v"."doctor_id"
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization"
+JOIN "visits" v ON d."doctor_id" = v."doctor_id"
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization"
 ORDER BY total_visits DESC;
 
 -- ============================================================================
@@ -221,28 +221,28 @@ ORDER BY "visit_date" DESC;
 -- Revenue by Department
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."department",
-    COUNT("v"."visit_id") as visit_count,
-    SUM("v"."total_charge") as total_revenue,
-    ROUND(AVG("v"."total_charge"), 2) as avg_revenue_per_visit,
-    ROUND(SUM("v"."total_charge") * 100.0 / SUM(SUM("v"."total_charge")) OVER (), 1) as revenue_percentage
+    d."department",
+    COUNT(v."visit_id") as visit_count,
+    SUM(v."total_charge") as total_revenue,
+    ROUND(AVG(v."total_charge"), 2) as avg_revenue_per_visit,
+    ROUND(SUM(v."total_charge") * 100.0 / SUM(SUM(v."total_charge")) OVER (), 1) as revenue_percentage
 FROM "doctors" d
-JOIN "visits" v ON "d"."doctor_id" = "v"."doctor_id"
-GROUP BY "d"."department"
+JOIN "visits" v ON d."doctor_id" = v."doctor_id"
+GROUP BY d."department"
 ORDER BY total_revenue DESC;
 
 -- Revenue by Doctor (Top 10)
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    "d"."department",
-    COUNT("v"."visit_id") as total_visits,
-    SUM("v"."total_charge") as total_revenue,
-    ROUND(AVG("v"."total_charge"), 2) as avg_charge_per_visit
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    d."department",
+    COUNT(v."visit_id") as total_visits,
+    SUM(v."total_charge") as total_revenue,
+    ROUND(AVG(v."total_charge"), 2) as avg_charge_per_visit
 FROM "doctors" d
-JOIN "visits" v ON "d"."doctor_id" = "v"."doctor_id"
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization", "d"."department"
+JOIN "visits" v ON d."doctor_id" = v."doctor_id"
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization", d."department"
 ORDER BY total_revenue DESC
 LIMIT 10;
 
@@ -292,15 +292,15 @@ LIMIT 15;
 -- Appointment Type Distribution by Specialization
 -- ----------------------------------------------------------------------------
 SELECT 
-    "d"."specialization",
-    "a"."appointment_type",
+    d."specialization",
+    a."appointment_type",
     COUNT(*) as count,
-    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY "d"."specialization"), 1) as percentage
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY d."specialization"), 1) as percentage
 FROM "appointments" a
-JOIN "doctors" d ON "a"."doctor_id" = "d"."doctor_id"
-WHERE "a"."appointment_date" >= DATEADD(day, -60, CURRENT_DATE)
-GROUP BY "d"."specialization", "a"."appointment_type"
-ORDER BY "d"."specialization", count DESC;
+JOIN "doctors" d ON a."doctor_id" = d."doctor_id"
+WHERE a."appointment_date" >= DATEADD(day, -60, CURRENT_DATE)
+GROUP BY d."specialization", a."appointment_type"
+ORDER BY d."specialization", count DESC;
 
 -- ============================================================================
 -- 6. Patient Analytics
@@ -309,42 +309,42 @@ ORDER BY "d"."specialization", count DESC;
 -- Patient Visit Frequency
 -- ----------------------------------------------------------------------------
 SELECT 
-    "p"."patient_id",
-    "p"."first_name" || ' ' || "p"."last_name" as patient_name,
-    "p"."insurance_provider",
-    COUNT("v"."visit_id") as total_visits,
-    MIN("v"."visit_date") as first_visit,
-    MAX("v"."visit_date") as most_recent_visit,
-    SUM("v"."total_charge") as total_spent,
-    ROUND(AVG("v"."total_charge"), 2) as avg_per_visit
+    p."patient_id",
+    p."first_name" || ' ' || p."last_name" as patient_name,
+    p."insurance_provider",
+    COUNT(v."visit_id") as total_visits,
+    MIN(v."visit_date") as first_visit,
+    MAX(v."visit_date") as most_recent_visit,
+    SUM(v."total_charge") as total_spent,
+    ROUND(AVG(v."total_charge"), 2) as avg_per_visit
 FROM "patients" p
-JOIN "visits" v ON "p"."patient_id" = "v"."patient_id"
-GROUP BY "p"."patient_id", "p"."first_name", "p"."last_name", "p"."insurance_provider"
-HAVING COUNT("v"."visit_id") >= 3
+JOIN "visits" v ON p."patient_id" = v."patient_id"
+GROUP BY p."patient_id", p."first_name", p."last_name", p."insurance_provider"
+HAVING COUNT(v."visit_id") >= 3
 ORDER BY total_visits DESC, total_spent DESC;
 
 -- New vs Returning Patients (Last 30 Days)
 -- ----------------------------------------------------------------------------
 WITH patient_visits AS (
     SELECT 
-        "p"."patient_id",
-        MIN("v"."visit_date") as first_visit_ever,
-        MAX("v"."visit_date") as last_visit
+        p."patient_id",
+        MIN(v."visit_date") as first_visit_ever,
+        MAX(v."visit_date") as last_visit
     FROM "patients" p
-    LEFT JOIN "visits" v ON "p"."patient_id" = "v"."patient_id"
-    GROUP BY "p"."patient_id"
+    LEFT JOIN "visits" v ON p."patient_id" = v."patient_id"
+    GROUP BY p."patient_id"
 )
 SELECT 
     CASE 
         WHEN pv.first_visit_ever >= DATEADD(day, -30, CURRENT_DATE) THEN 'New Patient'
         ELSE 'Returning Patient'
     END as patient_type,
-    COUNT(DISTINCT "v"."patient_id") as patient_count,
-    COUNT("v"."visit_id") as total_visits,
-    SUM("v"."total_charge") as total_revenue
+    COUNT(DISTINCT v."patient_id") as patient_count,
+    COUNT(v."visit_id") as total_visits,
+    SUM(v."total_charge") as total_revenue
 FROM "visits" v
-JOIN patient_visits pv ON "v"."patient_id" = pv."patient_id"
-WHERE "v"."visit_date" >= DATEADD(day, -30, CURRENT_DATE)
+JOIN patient_visits pv ON v."patient_id" = pv."patient_id"
+WHERE v."visit_date" >= DATEADD(day, -30, CURRENT_DATE)
 GROUP BY patient_type;
 
 -- Patient Demographics Summary
@@ -357,11 +357,11 @@ SELECT
         WHEN DATEDIFF(year, "date_of_birth", CURRENT_DATE) BETWEEN 51 AND 65 THEN 'Middle Age (51-65)'
         ELSE 'Senior (65+)'
     END as age_group,
-    COUNT(DISTINCT "p"."patient_id") as patient_count,
-    COUNT("v"."visit_id") as total_visits,
-    ROUND(AVG("v"."total_charge"), 2) as avg_visit_cost
+    COUNT(DISTINCT p."patient_id") as patient_count,
+    COUNT(v."visit_id") as total_visits,
+    ROUND(AVG(v."total_charge"), 2) as avg_visit_cost
 FROM "patients" p
-LEFT JOIN "visits" v ON "p"."patient_id" = "v"."patient_id"
+LEFT JOIN "visits" v ON p."patient_id" = v."patient_id"
 GROUP BY age_group
 ORDER BY age_group;
 
@@ -436,22 +436,22 @@ ORDER BY hour_block DESC;
 -- Executive Summary (Last 30 Days)
 -- ----------------------------------------------------------------------------
 SELECT 
-    COUNT(DISTINCT "a"."patient_id") as unique_patients_served,
-    COUNT(DISTINCT "a"."appointment_id") as total_appointments,
-    SUM(CASE WHEN "a"."status" = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
-    ROUND(SUM(CASE WHEN "a"."status" = 'completed' THEN 1 ELSE 0 END) * 100.0 / 
-          COUNT("a"."appointment_id"), 1) as completion_rate,
-    SUM(CASE WHEN "a"."status" = 'no_show' THEN 1 ELSE 0 END) as no_shows,
-    ROUND(SUM(CASE WHEN "a"."status" = 'no_show' THEN 1 ELSE 0 END) * 100.0 / 
-          COUNT("a"."appointment_id"), 1) as no_show_rate,
-    COUNT(DISTINCT "v"."visit_id") as total_visits,
-    SUM("v"."total_charge") as total_revenue,
-    ROUND(AVG("v"."total_charge"), 2) as avg_revenue_per_visit,
-    COUNT(DISTINCT "v"."doctor_id") as active_doctors
+    COUNT(DISTINCT a."patient_id") as unique_patients_served,
+    COUNT(DISTINCT a."appointment_id") as total_appointments,
+    SUM(CASE WHEN a."status" = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
+    ROUND(SUM(CASE WHEN a."status" = 'completed' THEN 1 ELSE 0 END) * 100.0 / 
+          COUNT(a."appointment_id"), 1) as completion_rate,
+    SUM(CASE WHEN a."status" = 'no_show' THEN 1 ELSE 0 END) as no_shows,
+    ROUND(SUM(CASE WHEN a."status" = 'no_show' THEN 1 ELSE 0 END) * 100.0 / 
+          COUNT(a."appointment_id"), 1) as no_show_rate,
+    COUNT(DISTINCT v."visit_id") as total_visits,
+    SUM(v."total_charge") as total_revenue,
+    ROUND(AVG(v."total_charge"), 2) as avg_revenue_per_visit,
+    COUNT(DISTINCT v."doctor_id") as active_doctors
 FROM "appointments" a
-LEFT JOIN "visits" v ON "a"."appointment_id" = "v"."appointment_id"
-WHERE "a"."appointment_date" >= DATEADD(day, -30, CURRENT_DATE)
-  AND "a"."appointment_date" <= CURRENT_DATE;
+LEFT JOIN "visits" v ON a."appointment_id" = v."appointment_id"
+WHERE a."appointment_date" >= DATEADD(day, -30, CURRENT_DATE)
+  AND a."appointment_date" <= CURRENT_DATE;
 
 -- ============================================================================
 -- End of Analytics Queries

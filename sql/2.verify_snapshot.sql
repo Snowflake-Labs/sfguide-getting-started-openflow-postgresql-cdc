@@ -140,28 +140,28 @@ ORDER BY count DESC;
 -- ----------------------------------------------------------------------------
 
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    "d"."department",
-    COUNT("a"."appointment_id") as total_appointments,
-    SUM(CASE WHEN "a"."status" = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
-    SUM(CASE WHEN "a"."status" IN ('scheduled', 'confirmed') THEN 1 ELSE 0 END) as upcoming_appointments
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    d."department",
+    COUNT(a."appointment_id") as total_appointments,
+    SUM(CASE WHEN a."status" = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
+    SUM(CASE WHEN a."status" IN ('scheduled', 'confirmed') THEN 1 ELSE 0 END) as upcoming_appointments
 FROM "doctors" d
-LEFT JOIN "appointments" a ON "d"."doctor_id" = "a"."doctor_id"
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization", "d"."department"
+LEFT JOIN "appointments" a ON d."doctor_id" = a."doctor_id"
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization", d."department"
 ORDER BY total_appointments DESC;
 
 -- Top 5 doctors by appointment volume (for quickstart guide)
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    "d"."department",
-    COUNT("a"."appointment_id") as total_appointments,
-    SUM(CASE WHEN "a"."status" = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
-    SUM(CASE WHEN "a"."status" IN ('scheduled', 'confirmed') THEN 1 ELSE 0 END) as upcoming_appointments
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    d."department",
+    COUNT(a."appointment_id") as total_appointments,
+    SUM(CASE WHEN a."status" = 'completed' THEN 1 ELSE 0 END) as completed_appointments,
+    SUM(CASE WHEN a."status" IN ('scheduled', 'confirmed') THEN 1 ELSE 0 END) as upcoming_appointments
 FROM "doctors" d
-LEFT JOIN "appointments" a ON "d"."doctor_id" = "a"."doctor_id"
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization", "d"."department"
+LEFT JOIN "appointments" a ON d."doctor_id" = a."doctor_id"
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization", d."department"
 ORDER BY total_appointments DESC
 LIMIT 5;
 
@@ -204,20 +204,20 @@ ORDER BY age_group;
 
 -- Next 7 days of scheduled appointments
 SELECT 
-    "p"."first_name" || ' ' || "p"."last_name" as patient_name,
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    "a"."appointment_date",
-    "a"."appointment_time",
-    "a"."status",
-    "a"."reason_for_visit",
-    "a"."appointment_type"
+    p."first_name" || ' ' || p."last_name" as patient_name,
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    a."appointment_date",
+    a."appointment_time",
+    a."status",
+    a."reason_for_visit",
+    a."appointment_type"
 FROM "appointments" a
-JOIN "patients" p ON "a"."patient_id" = "p"."patient_id"
-JOIN "doctors" d ON "a"."doctor_id" = "d"."doctor_id"
-WHERE "a"."appointment_date" >= CURRENT_DATE
-  AND "a"."status" IN ('scheduled', 'confirmed')
-ORDER BY "a"."appointment_date", "a"."appointment_time";
+JOIN "patients" p ON a."patient_id" = p."patient_id"
+JOIN "doctors" d ON a."doctor_id" = d."doctor_id"
+WHERE a."appointment_date" >= CURRENT_DATE
+  AND a."status" IN ('scheduled', 'confirmed')
+ORDER BY a."appointment_date", a."appointment_time";
 
 -- Step 9: Visit Revenue Summary
 -- ----------------------------------------------------------------------------
@@ -232,14 +232,14 @@ FROM "visits";
 
 -- Revenue by doctor
 SELECT 
-    "d"."first_name" || ' ' || "d"."last_name" as doctor_name,
-    "d"."specialization",
-    COUNT("v"."visit_id") as visit_count,
-    SUM("v"."total_charge") as total_revenue,
-    ROUND(AVG("v"."total_charge"), 2) as avg_revenue_per_visit
+    d."first_name" || ' ' || d."last_name" as doctor_name,
+    d."specialization",
+    COUNT(v."visit_id") as visit_count,
+    SUM(v."total_charge") as total_revenue,
+    ROUND(AVG(v."total_charge"), 2) as avg_revenue_per_visit
 FROM "doctors" d
-JOIN "visits" v ON "d"."doctor_id" = "v"."doctor_id"
-GROUP BY "d"."doctor_id", "d"."first_name", "d"."last_name", "d"."specialization"
+JOIN "visits" v ON d."doctor_id" = v."doctor_id"
+GROUP BY d."doctor_id", d."first_name", d."last_name", d."specialization"
 ORDER BY total_revenue DESC;
 
 -- Step 10: Common Diagnoses
