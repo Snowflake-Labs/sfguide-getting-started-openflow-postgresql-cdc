@@ -87,7 +87,20 @@ MD042: true # No empty links
 MD043: true # Required heading structure
 MD044: # Proper names should have the correct capitalization
   names:
-    ["Slack", "Snowflake", "Openflow", "Apache NiFi", "CSV", "JSON", "API", "VIP", "GitHub", "JavaScript", "Python"]
+    [
+      "Slack",
+      "Snowflake",
+      "Openflow",
+      "openflow",
+      "Apache NiFi",
+      "CSV",
+      "JSON",
+      "API",
+      "VIP",
+      "GitHub",
+      "JavaScript",
+      "Python",
+    ]
   code_blocks: false # Don't check proper names in code blocks
 
 MD045: true # Images should have alternate text (alt text)

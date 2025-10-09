@@ -178,10 +178,14 @@ SELECT pg_sleep(5);
 UPDATE appointments
 SET status = 'cancelled',
     updated_at = CURRENT_TIMESTAMP
-WHERE appointment_date = CURRENT_DATE 
-  AND status = 'confirmed'
-  AND appointment_time > '12:00:00'
-LIMIT 1;
+WHERE appointment_id IN (
+    SELECT appointment_id
+    FROM appointments
+    WHERE appointment_date = CURRENT_DATE 
+      AND status = 'confirmed'
+      AND appointment_time > '12:00:00'
+    LIMIT 1
+  );
 
 \echo '✅ 1 appointment cancelled'
 \echo ''
@@ -198,10 +202,14 @@ SELECT pg_sleep(5);
 UPDATE appointments 
 SET status = 'checked_in', 
     updated_at = CURRENT_TIMESTAMP
-WHERE status = 'confirmed' 
-  AND appointment_date = CURRENT_DATE
-  AND appointment_time <= '11:30:00'
-LIMIT 2;
+WHERE appointment_id IN (
+    SELECT appointment_id
+    FROM appointments
+    WHERE status = 'confirmed' 
+      AND appointment_date = CURRENT_DATE
+      AND appointment_time <= '11:30:00'
+    LIMIT 2
+  );
 
 \echo '✅ 2 more patients checked in'
 \echo ''
@@ -213,9 +221,13 @@ SELECT pg_sleep(5);
 UPDATE appointments 
 SET status = 'in_progress', 
     updated_at = CURRENT_TIMESTAMP
-WHERE status = 'checked_in'
-  AND appointment_date = CURRENT_DATE
-LIMIT 2;
+WHERE appointment_id IN (
+    SELECT appointment_id
+    FROM appointments
+    WHERE status = 'checked_in'
+      AND appointment_date = CURRENT_DATE
+    LIMIT 2
+  );
 
 \echo '✅ 2 new visits in progress'
 \echo ''
@@ -288,10 +300,14 @@ SELECT pg_sleep(5);
 UPDATE appointments
 SET status = 'no_show',
     updated_at = CURRENT_TIMESTAMP
-WHERE appointment_date = CURRENT_DATE 
-  AND status = 'confirmed'
-  AND appointment_time < '12:00:00'
-LIMIT 1;
+WHERE appointment_id IN (
+    SELECT appointment_id
+    FROM appointments
+    WHERE appointment_date = CURRENT_DATE 
+      AND status = 'confirmed'
+      AND appointment_time < '12:00:00'
+    LIMIT 1
+  );
 
 \echo '✅ 1 patient marked as no-show'
 \echo ''
@@ -313,6 +329,7 @@ WHERE status = 'cancelled'
     FROM appointments 
     WHERE status = 'cancelled' 
       AND appointment_date < CURRENT_DATE - INTERVAL '60 days'
+    ORDER BY appointment_id  -- Deterministic ordering
     LIMIT 2
   );
 
