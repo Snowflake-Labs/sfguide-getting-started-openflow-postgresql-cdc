@@ -90,7 +90,21 @@ CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION quickstart_pgcdc_access
 -- Grant usage to runtime role
 GRANT USAGE ON INTEGRATION quickstart_pgcdc_access TO ROLE QUICKSTART_ROLE;
 
--- Step 5: Verify Setup
+-- Step 5: Setup Snowflake Intelligence
+-- ----------------------------------------------------------------------------
+
+-- Create database for Snowflake Intelligence
+CREATE DATABASE IF NOT EXISTS snowflake_intelligence;
+GRANT USAGE ON DATABASE snowflake_intelligence TO ROLE PUBLIC;
+
+-- Create agents schema
+CREATE SCHEMA IF NOT EXISTS snowflake_intelligence.agents;
+GRANT USAGE ON SCHEMA snowflake_intelligence.agents TO ROLE PUBLIC;
+
+-- Grant agent creation privileges to quickstart role
+GRANT CREATE AGENT ON SCHEMA snowflake_intelligence.agents TO ROLE QUICKSTART_ROLE;
+
+-- Step 6: Verify Setup
 -- ----------------------------------------------------------------------------
 
 USE ROLE QUICKSTART_ROLE;
