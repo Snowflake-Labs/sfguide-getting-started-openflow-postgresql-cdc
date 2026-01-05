@@ -23,7 +23,10 @@
 --   - For managed services, enable logical replication via service console/UI
 
 -- Grant replication privileges to the postgres user (required for CDC)
-ALTER USER postgres WITH REPLICATION;
+-- To use a different user, run: psql -v pguser=youruser -f 0.init_healthcare.sql
+-- Or set PGUSER environment variable before running
+\set pguser `echo ${PGUSER:-postgres}`
+ALTER USER :"pguser" WITH REPLICATION;
 
 -- Step 2: Create Schema
 -- ----------------------------------------------------------------------------
