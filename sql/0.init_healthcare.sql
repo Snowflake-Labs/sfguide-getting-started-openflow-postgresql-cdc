@@ -347,8 +347,14 @@ LIMIT 100;
 -- Step 5: Create CDC Publication
 -- ----------------------------------------------------------------------------
 
--- Create publication for all tables in healthcare schema
-CREATE PUBLICATION healthcare_cdc_publication FOR ALL TABLES;
+-- Create publication for healthcare schema tables
+-- Note: Using explicit table list instead of FOR ALL TABLES to work with
+-- replication role users (superuser privileges not required)
+CREATE PUBLICATION healthcare_cdc_publication FOR TABLE
+    healthcare.patients,
+    healthcare.doctors,
+    healthcare.appointments,
+    healthcare.visits;
 
 -- ============================================================================
 -- Initialization Complete!
@@ -359,7 +365,7 @@ CREATE PUBLICATION healthcare_cdc_publication FOR ALL TABLES;
 -- - 10 doctors loaded  
 -- - 170 appointments created (150 past + 20 upcoming)
 -- - 100 visit records created
--- - CDC publication 'healthcare_cdc_publication' created for all tables
+-- - CDC publication 'healthcare_cdc_publication' created for healthcare tables
 -- - Replication privileges granted to postgres user
 --
 -- Next Steps:
